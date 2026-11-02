@@ -1,0 +1,3 @@
+model,comparison,pairs,resampled_unit,n_units,n_boot,estimate,ci_low,ci_high,p_boot,share_draws_positive
+B1,aware_minus_augmented,all 25,presentation,22,2000,0.003972655630925672,-0.0010692418919054192,0.005434792693159285,0.11294352823588207,0.944
+B3,aware_minus_augmented,all 25,presentation,22,2000,0.004495089312915031,0.0013230172527997964,0.005888199598870564,0.004997501249375313,0.998

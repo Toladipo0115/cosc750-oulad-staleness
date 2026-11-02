@@ -1,0 +1,4 @@
+d_vle,d_asm,tn,fp,fn,tp,recall,precision,flag_rate,note
+0,0,54315,12930,8903,6136,0.40800585145288915,0.32182943459561525,0.23170968839628603,"pooled over 15 test folds (each record appears 3 times, once per seed)"
+0,14,21154,46091,2547,12492,0.8306403351286654,0.21323592168376493,0.7119610130766613,"pooled over 15 test folds (each record appears 3 times, once per seed)"
+14,14,19978,47267,2430,12609,0.8384201077199281,0.21058520943282785,0.7276748821155996,"pooled over 15 test folds (each record appears 3 times, once per seed)"
