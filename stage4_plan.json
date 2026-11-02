@@ -1,0 +1,30 @@
+{
+  "status": "planned, not executed",
+  "selection_timing": "specified after inspection of Stage 3 grid; exploratory, not confirmatory",
+  "excluded_training_and_inner_validation_pairs": [
+    [
+      0,
+      1
+    ],
+    [
+      1,
+      3
+    ],
+    [
+      3,
+      7
+    ],
+    [
+      7,
+      14
+    ],
+    [
+      14,
+      0
+    ]
+  ],
+  "retained_pairs": 20,
+  "same_exclusions_for_both_arms": true,
+  "evaluation": "paired AP on excluded cells on student-purged held-out presentations",
+  "must_use_separate_output_directory": true
+}

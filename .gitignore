@@ -1,0 +1,6 @@
+data/
+results/cache/
+results/*.partial.csv
+__pycache__/
+*.pyc
+.pytest_cache/
