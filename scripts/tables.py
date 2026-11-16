@@ -99,11 +99,13 @@ def heatmap(s, model, path, title):
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
+    from matplotlib.colors import LinearSegmentedColormap
+    LIGHT_RDBU = LinearSegmentedColormap.from_list("light_rdbu", ["#e9a08f", "#f7f7f7", "#92b9dc"])
     g = s[(s.model == model) & (s.condition == "fresh")].pivot(index="d_asm", columns="d_vle", values="delta")
     fig, ax = plt.subplots(figsize=(3.3, 2.7))
     lim = np.abs(g.to_numpy()).max()
     im = ax.pcolormesh(np.arange(6)-0.5, np.arange(6)-0.5, g.to_numpy(),
-                       cmap="RdBu", vmin=-lim, vmax=lim, shading="flat", rasterized=False)
+                       cmap=LIGHT_RDBU, vmin=-lim, vmax=lim, shading="flat", rasterized=False)
     ax.set_xticks(range(5), g.columns); ax.set_yticks(range(5), g.index)
     ax.set_xlabel("VLE delay $\\delta_V$ (days)"); ax.set_ylabel("assessment delay $\\delta_A$ (days)")
     for i in range(5):
@@ -112,7 +114,7 @@ def heatmap(s, model, path, title):
             r = round(v, 3)
             label = "0.000" if r == 0 else ("+" if r > 0 else "\u2212") + f"{abs(r):.3f}"
             ax.text(j, i, label, ha="center", va="center", fontsize=6.5,
-                    color="white" if abs(v) > 0.6 * lim else "black")
+                    color="black")
     ax.set_title(title, fontsize=8)
     bar = fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
     bar.ax.tick_params(labelsize=6)

@@ -109,10 +109,12 @@ def figures(pooled, wide):
     fig, axes = plt.subplots(1, 3, figsize=(7.0, 2.4))
     titles = {(0, 0): "Fresh (0, 0)", (0, 14): "Assessments 14 days late (0, 14)",
               (14, 14): "Both 14 days late (14, 14)"}
+    from matplotlib.colors import LinearSegmentedColormap
+    LIGHT_BLUES = LinearSegmentedColormap.from_list("light_blues", ["#f7fbff", "#9ecae1"])
     vmax = pooled[["tn", "fp", "fn", "tp"]].to_numpy().max()
     for ax, (_, r) in zip(axes, pooled.iterrows()):
         m = np.array([[r.tp, r.fn], [r.fp, r.tn]])
-        ax.pcolormesh(np.arange(3)-0.5, np.arange(3)-0.5, m, cmap="Blues",
+        ax.pcolormesh(np.arange(3)-0.5, np.arange(3)-0.5, m, cmap=LIGHT_BLUES,
                       vmin=0, vmax=vmax, shading="flat", rasterized=False)
         ax.set_ylim(1.5, -0.5)
         rows = m.sum(axis=1, keepdims=True)
@@ -120,7 +122,7 @@ def figures(pooled, wide):
             for b in range(2):
                 v = m[a, b]
                 ax.text(b, a, f"{v:,}\n({100 * v / rows[a, 0]:.0f}%)", ha="center", va="center",
-                        color="white" if v > 0.55 * vmax else INK, fontsize=7.5)
+                        color=INK, fontsize=7.5)
         ax.set_xticks([0, 1], ["Withdrawal", "No\nwithdrawal"], fontsize=7)
         ax.set_yticks([0, 1], ["Withdrawal", "No\nwithdrawal"], fontsize=7)
         ax.set_xlabel("Predicted")

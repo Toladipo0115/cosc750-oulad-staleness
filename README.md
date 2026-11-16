@@ -24,6 +24,8 @@ make verify                          # run after both conditions; checks six met
 make test                            # 13 checks: checksums, cohort, day-28 cutoff, delays, no shared students, SVM calibration
 make diagnostics                     # B3 confusion matrices, permutation importance, model comparison chart
 make benchmark                       # B3 on the published study's cohort definition (benchmark comparison)
+make rq3                             # Stage 4 RQ3: both arms trained without the five pairs in stage4_plan.json, bootstrap, tables
+make stage4                          # all Stage 4 experiments (RQ3, ablations, sensitivity), about 2.5 hours on 2 CPU cores
 ```
 
 Both training commands are long-running. The original bootstrap estimate was about 30 minutes; total runtime depends on hardware, data loading and whether the feature cache exists. The sequential `make all` computes the full bootstrap once.
@@ -46,6 +48,10 @@ dataset into `data/oulad/` yourself; `make data` still verifies the checksums in
 | `scripts/reproduction_check.py` | Benchmark comparison: B3 on all 32,593 enrollments (the cohort of Wu, Duan and Luo 2026) |
 | `scripts/diagnostics.py` | B3 confusion matrices, permutation feature importance, model comparison chart |
 | `scripts/tables.py` | Baseline table, staleness surface, preliminary comparison, heat map |
+| `scripts/stage4.py` | Stage 4 experiments on the Stage 3 folds: RQ3 hold-out, no recency features, shuffled ages, wider B3 grid and 12,000-record SVM, training size, 2013 to 2014 split, Stage 2 cohort |
+| `scripts/ablation_bootstrap.py` | Student-cluster bootstrap for the no-recency and shuffled-age ablations from their saved predictions |
+| `scripts/rq3_bootstrap.py` | Student-cluster bootstrap for RQ3 from the saved RQ3 test predictions (`results/rq3/predictions/`) |
+| `scripts/stage4_tables.py` | Stage 4 summaries and figures (surfaces, ablations, alerts, modules, record-level false alarms, prevalence reweighting) |
 | `tests/test_pipeline.py` | Checksums, cohort counts, day-28 cutoff boundary, no extra information at larger delays, independent delays, no presentation or student overlap in outer or inner folds, weighted AP |
 
 ## Protocol in brief
@@ -107,8 +113,7 @@ Scientific Data 4:170171, CC BY 4.0. The data are not redistributed here;
 ## Authorship of the code
 
 The cohort logic and its assertions are the author's. The rest of the pipeline was written
-with Claude (Anthropic) and reviewed and run by the author. A methodological review of the
-Chatgpt reviewed the code, provided guideance- the inner-fold student
+with Claude (Anthropic) and reviewed and run by the author. ChatGPT reviewed the code and provided guidance on the inner-fold student
 purge, the bootstrap intervals, the day-28 eligibility rule and the planned Stage 4 robustness
 checks; see the AI-use disclosure in the paper.
 
@@ -116,8 +121,29 @@ checks; see the AI-use disclosure in the paper.
 
 `make breakdown` reads saved predictions and writes paired gain by source, delay and original presentation, plus complete-partition seed means. Presentation AP is recomputed within each presentation and averaged over cells and seeds; these descriptive values need not equal fold-mean AP. Student-cluster intervals still condition on fitted models and do not estimate new-presentation or retraining variability.
 
-The original published baseline grids and saved model predictions are unchanged. Table 1 in the manuscript reports mean and SD over the three complete seed means (`results/baseline_seed_means.csv` and `results/paper_seed_table.tex`), with training time from `results/baseline_table.csv`, which also holds the fold SDs. `make breakdown` also writes `results/adjacent_contrasts_B3.csv`: B3 adjacent contrasts and per-day finite differences on the fresh-trained surface (Table A5). ChatGPT added the feedback reporting script, six-metric verification and missing-file message, vector heatmap output, this documentation, and the serial `make all` workflow. `make breakdown` also runs `scripts/presentation_bootstrap.py` (about 7 minutes on 2 CPU cores): a presentation-cluster bootstrap of the age gain that resamples the 22 presentations (2,000 draws, fitted models held fixed) and writes `results/presentation_bootstrap.csv` (Appendix G). Claude added the adjacent-contrast export, the presentation bootstrap and checked the revised scripts against the saved predictions.
+The original published baseline grids and saved model predictions are unchanged. Table A3 in the Stage 4 manuscript reports mean and SD over the three complete seed means (`results/baseline_seed_means.csv` and `results/paper_seed_table.tex`), with training time from `results/baseline_table.csv`, which also holds the fold SDs. `make breakdown` also writes `results/adjacent_contrasts_B3.csv`: B3 adjacent contrasts and per-day finite differences on the fresh-trained surface (Table A6). ChatGPT added the feedback reporting script, six-metric verification and missing-file message, vector heatmap output, this documentation, and the serial `make all` workflow. `make breakdown` also runs `scripts/presentation_bootstrap.py` (about 7 minutes on 2 CPU cores): a presentation-cluster bootstrap of the age gain that resamples the 22 presentations (2,000 draws, fitted models held fixed) and writes `results/presentation_bootstrap.csv` (Appendix G). Claude added the adjacent-contrast export, the presentation bootstrap and checked the revised scripts against the saved predictions.
 
-`stage4_plan.json` records exploratory exclusion pairs selected after inspecting Stage 3 results. It is a plan, not an implemented or completed RQ3 experiment. Do not call these previously unseen results.
+`stage4_plan.json` records exploratory exclusion pairs selected after inspecting Stage 3 results. Stage 4 runs RQ3 on exactly these pairs (`make rq3`). Because the pairs were chosen after the Stage 3 grid was reported, the RQ3 result is an exploratory fitting-exclusion check, not a test on previously unseen results.
 
-`results/paper_seed_table.tex` is the numeric table used by the revised LaTeX source. After regenerating results, copy it to the source package at `generated/paper_seed_table.tex`; copy regenerated figure PDFs to `figures/`. The original fold-level tables remain available for descriptive comparison.
+`results/paper_seed_table.tex` holds the values of Table A3, which are typed into `main.tex` of the paper source. The paper source includes `generated/paper_surface_panels.tex` and `generated/paper_adjacent_table.tex` from `make breakdown`. After regenerating results, copy those two files to `generated/`, copy regenerated figure PDFs to `figures/`, and update the typed table values from the results files. The original fold-level tables remain available for descriptive comparison.
+
+## Stage 4
+
+`make stage4` reruns every Stage 4 experiment on the Stage 3 cohort, folds, seeds and grids and then writes the Stage 4 tables and figures; `make stage4-tables` rebuilds the tables and figures from the saved results. It always needs `data/oulad/assessments.csv` for the module table, and the other OULAD files unless `results/cache/features.pkl` has already been built by an earlier run.
+
+| Experiment | Output | Paper |
+|---|---|---|
+| Proposed method against every baseline, mean and SD over seeds, bootstrap intervals | `results/stage4_main.csv` (its `pr_auc_*_sd` columns are fold SDs; Table 1 uses SDs of the three seed means, recomputed from `results/runs_*.csv`), `results/uncertainty_rq2.csv` | Table 1 |
+| Staleness surfaces of B1, B2 and B3 | `results/stage4_surfaces.pdf`, `results/uncertainty_surface.csv` | Figure 1 |
+| RQ3: both arms trained without (0,1), (1,3), (3,7), (7,14), (14,0) | `results/stage4_rq3.csv`, `results/rq3/predictions/`, `results/rq3_bootstrap.csv` | Sec. 6.4, Table 2 |
+| No recency features (days since last activity, 7 and 14 day clicks) | `results/stage4_norecency.csv`, `results/norecency/predictions/`, `results/ablation_bootstrap.csv` | Table 2 |
+| Shuffled ages (control) | `results/stage4_randomage.csv`, `results/randomage/predictions/`, `results/ablation_bootstrap.csv` | Table 2 |
+| Training size 50% and 75% | `results/stage4_size.csv`, `results/stage4_size.pdf` | Figure A10, Table A12 |
+| 2013 to 2014 chronological split | `results/stage4_chrono.csv` | Table A12 |
+| Stage 2 cohort (27,444 records) | `results/stage4_fullcohort.csv` | Table A12 |
+| Wider B3 grid and 12,000-record SVM | `results/stage4_wide.csv` | Table A11 |
+| Alerts, modules, false alarms, prevalence (saved predictions, no refit) | `results/stage4_alerts*.csv`, `results/stage4_modules.*`, `results/stage4_false_alarms.csv`, `results/stage4_prevalence.csv` | Sec. 6.5, Figures A8 and A9, Tables A10, A13, A14 |
+
+An earlier exploratory RQ3 run that held out (7,1), (1,7), (14,3) and (3,14), made in October during Stage 3 preparation, before the Stage 3 pairs were fixed, is kept in `results/pilot_rq3_four_pairs/` as a supplementary check. It is not the RQ3 test.
+
+The no-recency and shuffled-age runs save their test predictions, and `scripts/ablation_bootstrap.py` gives them the same student-cluster bootstrap as RQ2 and RQ3. The scripts write every results table and data figure. The method diagrams are drawn in LaTeX, and the numbers in the paper's tables are copied from these results files. Run order from a clean checkout is `make all`, then `make stage4`. The shuffled-age CSV scores predictions before they are saved as float32, so recomputing its PR-AUC from `results/randomage/predictions/` can differ by up to about 0.00001. No reported value changes. The release used for the final paper is tagged `final`.

@@ -1,5 +1,5 @@
 {
-  "status": "planned, not executed",
+  "status": "executed in Stage 4 with make rq3; results in results/stage4_rq3.csv, results/rq3/predictions/ and results/rq3_bootstrap.csv",
   "selection_timing": "specified after inspection of Stage 3 grid; exploratory, not confirmatory",
   "excluded_training_and_inner_validation_pairs": [
     [
